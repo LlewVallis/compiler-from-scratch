@@ -1,5 +1,7 @@
 package io.github.llewvallis.cfs.ast;
 
+import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
+import io.github.llewvallis.cfs.graphviz.GraphvizNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,5 +21,16 @@ public final class ProgramAst extends AstNode {
   @Override
   public List<AstNode> getChildren() {
     return Collections.unmodifiableList(functions);
+  }
+
+  @Override
+  public GraphvizNode graphviz(GraphvizBuilder builder) {
+    var node = builder.newNode("Program");
+
+    for (var function : functions) {
+      node.addEdge(function.graphviz(builder));
+    }
+
+    return node;
   }
 }

@@ -1,5 +1,7 @@
 package io.github.llewvallis.cfs.ast;
 
+import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
+import io.github.llewvallis.cfs.graphviz.GraphvizNode;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.EqualsAndHashCode;
@@ -29,5 +31,21 @@ public final class FunctionAst extends AstNode {
     results.add(returnTy);
     results.add(body);
     return results;
+  }
+
+  @Override
+  public GraphvizNode graphviz(GraphvizBuilder builder) {
+    var node = builder.newNode("Function");
+
+    node.addEdge(name.graphviz(builder), "Name");
+
+    for (var param : parameters) {
+      node.addEdge(param.graphviz(builder), "Parameter");
+    }
+
+    node.addEdge(returnTy.graphviz(builder), "Return Type");
+    node.addEdge(body.graphviz(builder), "Body");
+
+    return node;
   }
 }

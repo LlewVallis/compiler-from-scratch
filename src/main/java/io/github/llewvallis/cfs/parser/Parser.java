@@ -67,10 +67,11 @@ public class Parser {
   }
 
   private TyAst parseKwTy() throws ParseException {
-    var result = switch (lexer.peek()) {
-      case KwIntToken ignored -> new IntTyAst();
-      default -> throw new ParseException("not a keyword type");
-    };
+    var result =
+        switch (lexer.peek()) {
+          case KwIntToken ignored -> new IntTyAst();
+          default -> throw new ParseException("not a keyword type");
+        };
 
     lexer.next();
 

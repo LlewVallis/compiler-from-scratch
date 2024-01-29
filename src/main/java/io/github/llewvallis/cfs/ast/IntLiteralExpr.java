@@ -1,5 +1,7 @@
 package io.github.llewvallis.cfs.ast;
 
+import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
+import io.github.llewvallis.cfs.graphviz.GraphvizNode;
 import java.util.Collections;
 import java.util.List;
 import lombok.EqualsAndHashCode;
@@ -18,5 +20,10 @@ public final class IntLiteralExpr extends ExprAst {
   @Override
   public List<AstNode> getChildren() {
     return Collections.emptyList();
+  }
+
+  @Override
+  public GraphvizNode graphviz(GraphvizBuilder builder) {
+    return builder.newNode(Integer.toString(value));
   }
 }
