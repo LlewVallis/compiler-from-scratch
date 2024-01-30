@@ -5,15 +5,23 @@ import io.github.llewvallis.cfs.graphviz.GraphvizNode;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
 public final class FunctionAst extends AstNode {
 
+  @Getter
   private final IdentAst name;
+
+  @Getter
   private final List<ParamAst> parameters;
+
+  @Getter
   private final TyAst returnTy;
+
+  @Getter
   private final BlockAst body;
 
   public FunctionAst(IdentAst name, List<ParamAst> parameters, TyAst returnTy, BlockAst body) {

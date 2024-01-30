@@ -5,13 +5,14 @@ import io.github.llewvallis.cfs.graphviz.GraphvizNode;
 import java.util.Collections;
 import java.util.List;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
 public final class IntLiteralExpr extends ExprAst {
 
-  private final int value;
+  @Getter private final int value;
 
   public IntLiteralExpr(int value) {
     this.value = value;

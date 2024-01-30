@@ -5,13 +5,14 @@ import io.github.llewvallis.cfs.graphviz.GraphvizNode;
 import java.util.Collections;
 import java.util.List;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
 public final class IdentAst extends AstNode {
 
-  private final String content;
+  @Getter private final String content;
 
   public IdentAst(String content) {
     this.content = content;

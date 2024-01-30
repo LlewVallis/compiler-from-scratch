@@ -1,16 +1,15 @@
 package io.github.llewvallis.cfs.graphviz;
 
-import lombok.Getter;
-
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Getter;
 
 public class GraphvizEdge {
 
   @Getter private final GraphvizNode from;
   @Getter private final GraphvizNode to;
 
+  @Getter
   private final Map<String, String> attributes = new HashMap<>();
 
   GraphvizEdge(GraphvizNode from, GraphvizNode to) {
@@ -25,9 +24,5 @@ public class GraphvizEdge {
   public GraphvizEdge attribute(String attr, String value) {
     attributes.put(attr, value);
     return this;
-  }
-
-  public Map<String, String> getAttributes() {
-    return Collections.unmodifiableMap(attributes);
   }
 }

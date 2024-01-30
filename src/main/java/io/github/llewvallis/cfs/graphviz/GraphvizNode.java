@@ -7,9 +7,9 @@ public class GraphvizNode {
 
   @Getter private final String id;
 
-  private final List<GraphvizEdge> edges = new ArrayList<>();
+  @Getter private final List<GraphvizEdge> edges = new ArrayList<>();
 
-  private final Map<String, String> attributes = new HashMap<>();
+  @Getter private final Map<String, String> attributes = new HashMap<>();
 
   GraphvizNode(String id) {
     this.id = id;
@@ -32,13 +32,5 @@ public class GraphvizNode {
   public GraphvizNode attribute(String attr, String value) {
     attributes.put(attr, value);
     return this;
-  }
-
-  public List<GraphvizEdge> getEdges() {
-    return Collections.unmodifiableList(edges);
-  }
-
-  public Map<String, String> getAttributes() {
-    return Collections.unmodifiableMap(attributes);
   }
 }

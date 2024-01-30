@@ -4,13 +4,14 @@ import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
 import java.util.List;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
 public final class ReturnStmtAst extends StmtAst {
 
-  private final ExprAst value;
+  @Getter private final ExprAst value;
 
   public ReturnStmtAst(ExprAst value) {
     this.value = value;

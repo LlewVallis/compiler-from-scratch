@@ -4,15 +4,16 @@ import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
 import java.util.List;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
 public final class ParamAst extends AstNode {
 
-  private final IdentAst name;
+  @Getter private final IdentAst name;
 
-  private final TyAst ty;
+  @Getter private final TyAst ty;
 
   public ParamAst(IdentAst name, TyAst ty) {
     this.name = name;

@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
 public final class BlockAst extends AstNode {
 
-  private final List<StmtAst> stmts;
+  @Getter private final List<StmtAst> stmts;
 
   public BlockAst(List<StmtAst> stmts) {
     this.stmts = new ArrayList<>(stmts);
@@ -20,7 +21,7 @@ public final class BlockAst extends AstNode {
 
   @Override
   public List<AstNode> getChildren() {
-    return Collections.unmodifiableList(stmts);
+    return new ArrayList<>(stmts);
   }
 
   @Override
