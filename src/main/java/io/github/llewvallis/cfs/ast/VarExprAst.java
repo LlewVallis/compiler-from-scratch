@@ -4,34 +4,36 @@ import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
 import io.github.llewvallis.cfs.ast.analysis.AstVisitor;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
-import java.util.Collections;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
-public final class IdentAst extends Ast {
+public final class VarExprAst extends ExprAst {
 
-  @Getter private final String content;
+  @Getter private final IdentAst name;
 
-  public IdentAst(String content) {
-    this.content = content;
+  @Getter @Setter private VarDeclAst decl = null;
+
+  public VarExprAst(IdentAst name) {
+    this.name = name;
   }
 
   @Override
   public void accept(AstVisitor visitor) throws AnalysisException {
-    visitor.visitIdent(this);
+    visitor.visitVariableExpr(this);
   }
 
   @Override
   public List<? extends Ast> getChildren() {
-    return Collections.emptyList();
+    return List.of(name);
   }
 
   @Override
   public GraphvizNode graphviz(GraphvizBuilder builder) {
-    return builder.newNode(content);
+    return name.graphviz(builder);
   }
 }

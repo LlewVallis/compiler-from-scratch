@@ -2,9 +2,15 @@ package io.github.llewvallis.cfs.graphviz;
 
 import java.util.*;
 
+/**
+ * A utility for building diagrams in DOT (Graphviz) syntax, for example creating an AST diagram.
+ */
 public class GraphvizBuilder {
 
+  /** All nodes created in this builder. */
   private final List<GraphvizNode> nodes = new ArrayList<>();
+
+  /** The next ID to be allocated to a node. */
   private int nextId = 0;
 
   public GraphvizNode newNode(String label) {

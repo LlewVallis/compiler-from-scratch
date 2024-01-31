@@ -1,5 +1,7 @@
 package io.github.llewvallis.cfs.ast;
 
+import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
+import io.github.llewvallis.cfs.ast.analysis.AstVisitor;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
 import java.util.Collections;
@@ -12,7 +14,12 @@ import lombok.ToString;
 public final class IntTyAst extends TyAst {
 
   @Override
-  public List<AstNode> getChildren() {
+  public void accept(AstVisitor visitor) throws AnalysisException {
+    visitor.visitIntTy(this);
+  }
+
+  @Override
+  public List<? extends Ast> getChildren() {
     return Collections.emptyList();
   }
 

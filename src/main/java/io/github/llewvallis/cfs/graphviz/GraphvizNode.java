@@ -3,6 +3,7 @@ package io.github.llewvallis.cfs.graphviz;
 import java.util.*;
 import lombok.Getter;
 
+/** A configurable node as part of a graph being produced by a {@link GraphvizBuilder}. */
 public class GraphvizNode {
 
   @Getter private final String id;

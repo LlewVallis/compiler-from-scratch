@@ -1,5 +1,7 @@
 package io.github.llewvallis.cfs.ast;
 
+import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
+import io.github.llewvallis.cfs.ast.analysis.AstVisitor;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
 import java.util.List;
@@ -18,7 +20,12 @@ public final class ReturnStmtAst extends StmtAst {
   }
 
   @Override
-  public List<AstNode> getChildren() {
+  public void accept(AstVisitor visitor) throws AnalysisException {
+    visitor.visitReturnStmt(this);
+  }
+
+  @Override
+  public List<? extends Ast> getChildren() {
     return List.of(value);
   }
 

@@ -1,5 +1,7 @@
 package io.github.llewvallis.cfs.ast;
 
+import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
+import io.github.llewvallis.cfs.ast.analysis.AstVisitor;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
 import java.util.ArrayList;
@@ -10,32 +12,33 @@ import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
-public final class FunctionAst extends AstNode {
+public final class FunctionAst extends Ast {
 
-  @Getter
-  private final IdentAst name;
+  @Getter private final IdentAst name;
 
-  @Getter
-  private final List<ParamAst> parameters;
+  @Getter private final List<VarDeclAst> params;
 
-  @Getter
-  private final TyAst returnTy;
+  @Getter private final TyAst returnTy;
 
-  @Getter
-  private final BlockAst body;
+  @Getter private final BlockAst body;
 
-  public FunctionAst(IdentAst name, List<ParamAst> parameters, TyAst returnTy, BlockAst body) {
+  public FunctionAst(IdentAst name, List<VarDeclAst> params, TyAst returnTy, BlockAst body) {
     this.name = name;
-    this.parameters = new ArrayList<>(parameters);
+    this.params = new ArrayList<>(params);
     this.returnTy = returnTy;
     this.body = body;
   }
 
   @Override
-  public List<AstNode> getChildren() {
-    var results = new ArrayList<AstNode>();
+  public void accept(AstVisitor visitor) throws AnalysisException {
+    visitor.visitFunction(this);
+  }
+
+  @Override
+  public List<? extends Ast> getChildren() {
+    var results = new ArrayList<Ast>();
     results.add(name);
-    results.addAll(parameters);
+    results.addAll(params);
     results.add(returnTy);
     results.add(body);
     return results;
@@ -47,7 +50,7 @@ public final class FunctionAst extends AstNode {
 
     node.addEdge(name.graphviz(builder), "Name");
 
-    for (var param : parameters) {
+    for (var param : params) {
       node.addEdge(param.graphviz(builder), "Parameter");
     }
 

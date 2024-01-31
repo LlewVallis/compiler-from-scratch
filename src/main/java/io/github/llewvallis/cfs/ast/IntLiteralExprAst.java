@@ -1,5 +1,7 @@
 package io.github.llewvallis.cfs.ast;
 
+import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
+import io.github.llewvallis.cfs.ast.analysis.AstVisitor;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
 import java.util.Collections;
@@ -10,16 +12,21 @@ import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
-public final class IntLiteralExpr extends ExprAst {
+public final class IntLiteralExprAst extends ExprAst {
 
   @Getter private final int value;
 
-  public IntLiteralExpr(int value) {
+  public IntLiteralExprAst(int value) {
     this.value = value;
   }
 
   @Override
-  public List<AstNode> getChildren() {
+  public void accept(AstVisitor visitor) throws AnalysisException {
+    visitor.visitIntLiteralExpr(this);
+  }
+
+  @Override
+  public List<? extends Ast> getChildren() {
     return Collections.emptyList();
   }
 
