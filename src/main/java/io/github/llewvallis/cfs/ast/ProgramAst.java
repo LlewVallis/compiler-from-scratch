@@ -1,9 +1,9 @@
 package io.github.llewvallis.cfs.ast;
 
-import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
 import io.github.llewvallis.cfs.ast.analysis.AstVisitor;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
+import io.github.llewvallis.cfs.reporting.Span;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.EqualsAndHashCode;
@@ -16,7 +16,8 @@ public final class ProgramAst extends Ast {
 
   @Getter private final List<FunctionAst> functions;
 
-  public ProgramAst(List<FunctionAst> functions) {
+  public ProgramAst(Span span, List<FunctionAst> functions) {
+    super(span);
     this.functions = new ArrayList<>(functions);
   }
 
@@ -31,7 +32,7 @@ public final class ProgramAst extends Ast {
   }
 
   @Override
-  public void accept(AstVisitor visitor) throws AnalysisException {
+  public void accept(AstVisitor visitor) {
     visitor.visitProgram(this);
   }
 

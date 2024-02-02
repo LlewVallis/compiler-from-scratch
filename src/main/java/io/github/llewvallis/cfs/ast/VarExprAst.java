@@ -1,9 +1,9 @@
 package io.github.llewvallis.cfs.ast;
 
-import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
 import io.github.llewvallis.cfs.ast.analysis.AstVisitor;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
+import io.github.llewvallis.cfs.reporting.Span;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -18,12 +18,13 @@ public final class VarExprAst extends ExprAst {
 
   @Getter @Setter private VarDeclAst decl = null;
 
-  public VarExprAst(IdentAst name) {
+  public VarExprAst(Span span, IdentAst name) {
+    super(span);
     this.name = name;
   }
 
   @Override
-  public void accept(AstVisitor visitor) throws AnalysisException {
+  public void accept(AstVisitor visitor) {
     visitor.visitVariableExpr(this);
   }
 

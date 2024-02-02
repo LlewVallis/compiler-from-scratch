@@ -1,8 +1,10 @@
 package io.github.llewvallis.cfs.cli;
 
+import io.github.llewvallis.cfs.CompilerDriver;
+import io.github.llewvallis.cfs.ast.ProgramAst;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
-import io.github.llewvallis.cfs.parser.ParseException;
-import io.github.llewvallis.cfs.parser.Parser;
+import io.github.llewvallis.cfs.reporting.CompileErrorsException;
+import io.github.llewvallis.cfs.reporting.SourceMap;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
@@ -17,9 +19,18 @@ public class DumpAst implements Callable<Integer> {
   private boolean graphviz;
 
   @Override
-  public Integer call() throws IOException, ParseException {
+  public Integer call() throws IOException {
     var input = new String(System.in.readAllBytes());
-    var ast = Parser.parse(input);
+    var sourceMap = new SourceMap(input);
+    var compiler = new CompilerDriver(input);
+
+    ProgramAst ast;
+    try {
+      ast = compiler.parse();
+    } catch (CompileErrorsException e) {
+      System.err.println(e.prettyPrint(sourceMap));
+      return 1;
+    }
 
     if (graphviz) {
       var builder = new GraphvizBuilder();

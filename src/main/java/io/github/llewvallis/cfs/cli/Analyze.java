@@ -1,9 +1,8 @@
 package io.github.llewvallis.cfs.cli;
 
-import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
-import io.github.llewvallis.cfs.ast.analysis.Analyzer;
-import io.github.llewvallis.cfs.parser.ParseException;
-import io.github.llewvallis.cfs.parser.Parser;
+import io.github.llewvallis.cfs.CompilerDriver;
+import io.github.llewvallis.cfs.reporting.CompileErrorsException;
+import io.github.llewvallis.cfs.reporting.SourceMap;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
@@ -15,10 +14,17 @@ import picocli.CommandLine.Command;
 public class Analyze implements Callable<Integer> {
 
   @Override
-  public Integer call() throws IOException, ParseException, AnalysisException {
+  public Integer call() throws IOException {
     var input = new String(System.in.readAllBytes());
-    var ast = Parser.parse(input);
-    new Analyzer().analyze(ast);
+    var sourceMap = new SourceMap(input);
+    var compiler = new CompilerDriver(input);
+
+    try {
+      compiler.analyze();
+    } catch (CompileErrorsException e) {
+      System.err.println(e.prettyPrint(sourceMap));
+      return 1;
+    }
 
     return 0;
   }

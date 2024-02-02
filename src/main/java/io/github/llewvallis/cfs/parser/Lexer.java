@@ -1,5 +1,6 @@
 package io.github.llewvallis.cfs.parser;
 
+import io.github.llewvallis.cfs.reporting.Span;
 import io.github.llewvallis.cfs.token.*;
 import java.util.Map;
 import java.util.Set;
@@ -8,53 +9,49 @@ import java.util.Set;
  * Given an input string, a lexer can produce tokens one by one. A lexer keeps tracks and mutates
  * its position in the input. Once the input is exhausted, the lexer produces an infinite sequence
  * of {@link EofToken}.
+ *
+ * <p>Generally you want to use a {@link TokenStream} instead, since a token stream is able to
+ * rewind and gracefully handle errors.
  */
 public class Lexer {
 
   /** Characters completely ignored by the lexer */
   private static final Set<Character> WHITESPACE = Set.of(' ', '\t', '\n', '\r');
 
-  private static final Map<String, Token> SYMBOLS =
+  private static final Map<String, TokenFactory> SYMBOLS =
       Map.of(
-          "(", new OpenParenToken(),
-          ")", new CloseParenToken(),
-          "{", new OpenBraceToken(),
-          "}", new CloseBraceToken(),
-          ";", new SemicolonToken(),
-          ",", new CommaToken(),
-          "=", new EqualsToken());
+          "(", OpenParenToken::new,
+          ")", CloseParenToken::new,
+          "{", OpenBraceToken::new,
+          "}", CloseBraceToken::new,
+          ";", SemicolonToken::new,
+          ",", CommaToken::new,
+          "=", EqualsToken::new);
 
   /** If an identifier matches one of these, we replace it using this table. */
-  private static final Map<String, Token> KEYWORDS =
+  private static final Map<String, TokenFactory> KEYWORDS =
       Map.of(
-          "int", new KwIntToken(),
-          "return", new KwReturnToken());
+          "int", KwIntToken::new,
+          "return", KwReturnToken::new);
 
   private final String input;
+
   private int position = 0;
 
   public Lexer(String input) {
     this.input = input;
   }
 
-  /**
-   * Clones the lexer so further advancing the new one will not affect the old one and vice versa.
-   */
-  public Lexer(Lexer other) {
-    this.input = other.input;
-    this.position = other.position;
-  }
+  private interface TokenFactory {
 
-  /** Like {@link #next()} but doesn't change the input position. */
-  public Token peek() throws LexException {
-    return new Lexer(this).next();
+    Token createToken(Span span);
   }
 
   public Token next() throws LexException {
     skipWhitespace();
 
     if (position >= input.length()) {
-      return new EofToken();
+      return new EofToken(Span.point(input.length()));
     }
 
     Token symbol = lexSymbol();
@@ -72,15 +69,19 @@ public class Lexer {
       return literal;
     }
 
-    throw new LexException("unknown token");
+    throw new LexException(position++, "unknown token");
   }
 
   /** Lex anything in the symbols table. */
   private Token lexSymbol() {
     for (var entry : SYMBOLS.entrySet()) {
       if (stringMatches(entry.getKey())) {
-        position += entry.getKey().length();
-        return entry.getValue();
+        var end = position + entry.getKey().length();
+        var span = new Span(position, end);
+
+        position = end;
+
+        return entry.getValue().createToken(span);
       }
     }
 
@@ -98,37 +99,48 @@ public class Lexer {
 
   /** Lex either an identifier or keyword. */
   private Token lexWord() {
-    var index = this.position;
-    while (index < input.length() && Character.isAlphabetic(input.charAt(index))) {
-      index++;
+    var currentPosition = this.position;
+    while (currentPosition < input.length()
+        && Character.isAlphabetic(input.charAt(currentPosition))) {
+      currentPosition++;
     }
 
-    if (index == this.position) {
+    if (currentPosition == this.position) {
       return null;
     }
 
-    String content = input.substring(this.position, index);
-    this.position = index;
-    return KEYWORDS.getOrDefault(content, new IdentToken(content));
+    var content = input.substring(this.position, currentPosition);
+    var span = new Span(position, currentPosition);
+
+    this.position = currentPosition;
+
+    var keyword = KEYWORDS.get(content);
+    if (keyword == null) {
+      return new IdentToken(span, content);
+    } else {
+      return keyword.createToken(span);
+    }
   }
 
   private Token lexIntLiteral() {
-    var index = this.position;
+    var currentPosition = this.position;
     var value = 0;
 
-    while (index < input.length() && Character.isDigit(input.charAt(index))) {
-      int digit = Character.digit(input.charAt(index), 10);
+    while (currentPosition < input.length() && Character.isDigit(input.charAt(currentPosition))) {
+      int digit = Character.digit(input.charAt(currentPosition), 10);
       value = value * 10 + digit;
 
-      index++;
+      currentPosition++;
     }
 
-    if (index == this.position) {
+    if (currentPosition == this.position) {
       return null;
     }
 
-    this.position = index;
-    return new IntLiteralToken(value);
+    var span = new Span(position, currentPosition);
+    this.position = currentPosition;
+
+    return new IntLiteralToken(span, value);
   }
 
   private void skipWhitespace() {

@@ -1,5 +1,7 @@
 package io.github.llewvallis.cfs.token;
 
+import io.github.llewvallis.cfs.reporting.Span;
+
 public abstract sealed class PunctuationToken extends Token
     permits CloseBraceToken,
         CloseParenToken,
@@ -7,4 +9,9 @@ public abstract sealed class PunctuationToken extends Token
         EqualsToken,
         OpenBraceToken,
         OpenParenToken,
-        SemicolonToken {}
+        SemicolonToken {
+
+  public PunctuationToken(Span span) {
+    super(span);
+  }
+}

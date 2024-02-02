@@ -1,9 +1,9 @@
 package io.github.llewvallis.cfs.ast;
 
-import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
 import io.github.llewvallis.cfs.ast.analysis.AstVisitor;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
+import io.github.llewvallis.cfs.reporting.Span;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -15,12 +15,13 @@ public final class ExprStmtAst extends StmtAst {
 
   @Getter private final ExprAst expr;
 
-  public ExprStmtAst(ExprAst expr) {
+  public ExprStmtAst(Span span, ExprAst expr) {
+    super(span);
     this.expr = expr;
   }
 
   @Override
-  public void accept(AstVisitor visitor) throws AnalysisException {
+  public void accept(AstVisitor visitor) {
     visitor.visitExprStmt(this);
   }
 

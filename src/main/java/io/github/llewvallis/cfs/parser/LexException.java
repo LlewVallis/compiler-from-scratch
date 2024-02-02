@@ -1,8 +1,13 @@
 package io.github.llewvallis.cfs.parser;
 
-public class LexException extends ParseException {
+import lombok.Getter;
 
-  public LexException(String message) {
+public class LexException extends Exception {
+
+  @Getter private final int position;
+
+  public LexException(int position, String message) {
     super(message);
+    this.position = position;
   }
 }

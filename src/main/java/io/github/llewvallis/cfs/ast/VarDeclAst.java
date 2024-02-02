@@ -1,9 +1,9 @@
 package io.github.llewvallis.cfs.ast;
 
-import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
 import io.github.llewvallis.cfs.ast.analysis.AstVisitor;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
+import io.github.llewvallis.cfs.reporting.Span;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -17,13 +17,14 @@ public final class VarDeclAst extends Ast {
 
   @Getter private final TyAst ty;
 
-  public VarDeclAst(IdentAst name, TyAst ty) {
+  public VarDeclAst(Span span, IdentAst name, TyAst ty) {
+    super(span);
     this.name = name;
     this.ty = ty;
   }
 
   @Override
-  public void accept(AstVisitor visitor) throws AnalysisException {
+  public void accept(AstVisitor visitor) {
     visitor.visitVarDecl(this);
   }
 

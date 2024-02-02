@@ -1,9 +1,9 @@
 package io.github.llewvallis.cfs.ast;
 
-import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
 import io.github.llewvallis.cfs.ast.analysis.AstVisitor;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
+import io.github.llewvallis.cfs.reporting.Span;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.EqualsAndHashCode;
@@ -22,7 +22,9 @@ public final class FunctionAst extends Ast {
 
   @Getter private final BlockAst body;
 
-  public FunctionAst(IdentAst name, List<VarDeclAst> params, TyAst returnTy, BlockAst body) {
+  public FunctionAst(
+      Span span, IdentAst name, List<VarDeclAst> params, TyAst returnTy, BlockAst body) {
+    super(span);
     this.name = name;
     this.params = new ArrayList<>(params);
     this.returnTy = returnTy;
@@ -30,7 +32,7 @@ public final class FunctionAst extends Ast {
   }
 
   @Override
-  public void accept(AstVisitor visitor) throws AnalysisException {
+  public void accept(AstVisitor visitor) {
     visitor.visitFunction(this);
   }
 

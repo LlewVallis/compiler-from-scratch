@@ -1,15 +1,21 @@
 package io.github.llewvallis.cfs.ast.analysis;
 
 import io.github.llewvallis.cfs.ast.Ast;
+import io.github.llewvallis.cfs.reporting.ErrorReporter;
 
-/** Runs various validation and transformation passes over an AST. */
+/** Orchestrates validation and transformation passes over an AST. */
 public class Analyzer {
 
-  private final CollectNames collectNames = new CollectNames();
+  private final CollectNames collectNames;
 
-  private final ResolveNames resolveNames = new ResolveNames(collectNames);
+  private final ResolveNames resolveNames;
 
-  public void analyze(Ast ast) throws AnalysisException {
+  public Analyzer(ErrorReporter reporter) {
+    collectNames = new CollectNames(reporter);
+    resolveNames = new ResolveNames(reporter, collectNames);
+  }
+
+  public void analyze(Ast ast) {
     ast.accept(collectNames);
     ast.accept(resolveNames);
   }

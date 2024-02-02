@@ -1,9 +1,9 @@
 package io.github.llewvallis.cfs.ast;
 
-import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
 import io.github.llewvallis.cfs.ast.analysis.AstVisitor;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
+import io.github.llewvallis.cfs.reporting.Span;
 import java.util.Collections;
 import java.util.List;
 import lombok.EqualsAndHashCode;
@@ -13,8 +13,12 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = false)
 public final class IntTyAst extends TyAst {
 
+  public IntTyAst(Span span) {
+    super(span);
+  }
+
   @Override
-  public void accept(AstVisitor visitor) throws AnalysisException {
+  public void accept(AstVisitor visitor) {
     visitor.visitIntTy(this);
   }
 

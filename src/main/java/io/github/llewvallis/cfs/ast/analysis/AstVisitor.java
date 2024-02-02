@@ -9,57 +9,57 @@ import io.github.llewvallis.cfs.ast.*;
  */
 public interface AstVisitor {
 
-  private void visitChildren(Ast node) throws AnalysisException {
+  private void visitChildren(Ast node) {
     for (var child : node.getChildren()) {
       child.accept(this);
     }
   }
 
-  default void visitProgram(ProgramAst ast) throws AnalysisException {
+  default void visitProgram(ProgramAst ast) {
     visitChildren(ast);
   }
 
-  default void visitFunction(FunctionAst ast) throws AnalysisException {
+  default void visitFunction(FunctionAst ast) {
     visitChildren(ast);
   }
 
-  default void visitVarDecl(VarDeclAst ast) throws AnalysisException {
+  default void visitVarDecl(VarDeclAst ast) {
     visitChildren(ast);
   }
 
-  default void visitIntTy(IntTyAst ast) throws AnalysisException {
+  default void visitIntTy(IntTyAst ast) {
     visitChildren(ast);
   }
 
-  default void visitBlock(BlockAst ast) throws AnalysisException {
+  default void visitBlock(BlockAst ast) {
     visitChildren(ast);
   }
 
-  default void visitVarDeclStmt(VarDeclStmtAst ast) throws AnalysisException {
+  default void visitVarDeclStmt(VarDeclStmtAst ast) {
     visitChildren(ast);
   }
 
-  default void visitReturnStmt(ReturnStmtAst ast) throws AnalysisException {
+  default void visitReturnStmt(ReturnStmtAst ast) {
     visitChildren(ast);
   }
 
-  default void visitExprStmt(ExprStmtAst ast) throws AnalysisException {
+  default void visitExprStmt(ExprStmtAst ast) {
     visitChildren(ast);
   }
 
-  default void visitVariableExpr(VarExprAst ast) throws AnalysisException {
+  default void visitVariableExpr(VarExprAst ast) {
     visitChildren(ast);
   }
 
-  default void visitAssignmentExpr(AssignmentExprAst ast) throws AnalysisException {
+  default void visitAssignmentExpr(AssignmentExprAst ast) {
     visitChildren(ast);
   }
 
-  default void visitIntLiteralExpr(IntLiteralExprAst ast) throws AnalysisException {
+  default void visitIntLiteralExpr(IntLiteralExprAst ast) {
     visitChildren(ast);
   }
 
-  default void visitIdent(IdentAst ast) throws AnalysisException {
+  default void visitIdent(IdentAst ast) {
     visitChildren(ast);
   }
 }

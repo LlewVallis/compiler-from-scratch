@@ -1,14 +1,11 @@
 package io.github.llewvallis.cfs.ast;
 
-import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
 import io.github.llewvallis.cfs.ast.analysis.AstVisitor;
 import io.github.llewvallis.cfs.graphviz.GraphvizBuilder;
 import io.github.llewvallis.cfs.graphviz.GraphvizNode;
+import io.github.llewvallis.cfs.reporting.Span;
 import java.util.List;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
@@ -20,19 +17,20 @@ public final class AssignmentExprAst extends ExprAst {
 
   @Getter @Setter private VarDeclAst decl = null;
 
-  public AssignmentExprAst(IdentAst variable, ExprAst value) {
+  public AssignmentExprAst(Span span, IdentAst variable, ExprAst value) {
+    super(span);
     this.variable = variable;
     this.value = value;
   }
 
   @Override
-  public void accept(AstVisitor visitor) throws AnalysisException {
+  public void accept(AstVisitor visitor) {
     visitor.visitAssignmentExpr(this);
   }
 
   @Override
   public List<? extends Ast> getChildren() {
-    return List.of(value, value);
+    return List.of(variable, value);
   }
 
   @Override

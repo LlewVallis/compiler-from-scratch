@@ -3,10 +3,8 @@ package io.github.llewvallis.cfs.interpret;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
-import io.github.llewvallis.cfs.ast.analysis.Analyzer;
-import io.github.llewvallis.cfs.parser.ParseException;
-import io.github.llewvallis.cfs.parser.Parser;
+import io.github.llewvallis.cfs.CompilerDriver;
+import io.github.llewvallis.cfs.reporting.CompileErrorsException;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,12 +16,8 @@ class InterpreterTest {
   @ParameterizedTest
   @MethodSource
   void interpretationProducesCorrectValue(String source, Value expected, List<Value> args)
-      throws ParseException, AnalysisException, InterpretException {
-    var ast = Parser.parse(source);
-    new Analyzer().analyze(ast);
-    var interpreter = new Interpreter(ast);
-    var output = interpreter.run("main", args);
-
+      throws InterpretException, CompileErrorsException {
+    var output = new CompilerDriver(source).interpret("main", args);
     assertEquals(expected, output);
   }
 
@@ -39,9 +33,8 @@ class InterpreterTest {
   @ParameterizedTest
   @MethodSource
   void interpretingErrorThrowsCorrectException(String source, List<Value> args)
-      throws ParseException, AnalysisException {
-    var ast = Parser.parse(source);
-    new Analyzer().analyze(ast);
+      throws CompileErrorsException {
+    var ast = new CompilerDriver(source).analyze();
     var interpreter = new Interpreter(ast);
 
     assertThrows(InterpretException.class, () -> interpreter.run("main", args));

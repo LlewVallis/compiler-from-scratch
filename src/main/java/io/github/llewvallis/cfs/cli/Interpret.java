@@ -1,11 +1,9 @@
 package io.github.llewvallis.cfs.cli;
 
-import io.github.llewvallis.cfs.ast.analysis.AnalysisException;
-import io.github.llewvallis.cfs.ast.analysis.Analyzer;
+import io.github.llewvallis.cfs.CompilerDriver;
 import io.github.llewvallis.cfs.interpret.InterpretException;
-import io.github.llewvallis.cfs.interpret.Interpreter;
-import io.github.llewvallis.cfs.parser.ParseException;
-import io.github.llewvallis.cfs.parser.Parser;
+import io.github.llewvallis.cfs.reporting.CompileErrorsException;
+import io.github.llewvallis.cfs.reporting.SourceMap;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -18,13 +16,18 @@ import picocli.CommandLine.Command;
 public class Interpret implements Callable<Integer> {
 
   @Override
-  public Integer call() throws IOException, ParseException, AnalysisException, InterpretException {
+  public Integer call() throws IOException, InterpretException {
     var input = new String(System.in.readAllBytes());
-    var ast = Parser.parse(input);
-    new Analyzer().analyze(ast);
-    var interpreter = new Interpreter(ast);
+    var sourceMap = new SourceMap(input);
+    var compiler = new CompilerDriver(input);
 
-    System.out.println(interpreter.run("main", List.of()));
+    try {
+      var value = compiler.interpret("main", List.of());
+      System.out.println(value);
+    } catch (CompileErrorsException e) {
+      System.err.println(e.prettyPrint(sourceMap));
+      return 1;
+    }
 
     return 0;
   }

@@ -63,14 +63,6 @@ class LexerTest {
   }
 
   @Test
-  void peekDoesNotAdvanceInput() throws LexException {
-    var lexer = new Lexer("int");
-    assertInstanceOf(KwIntToken.class, lexer.peek());
-    assertInstanceOf(KwIntToken.class, lexer.peek());
-    assertInstanceOf(KwIntToken.class, lexer.next());
-  }
-
-  @Test
   void unknownTokenThrows() {
     var lexer = new Lexer("@");
     assertThrows(LexException.class, lexer::next);
