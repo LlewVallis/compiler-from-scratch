@@ -1,6 +1,5 @@
 package io.github.llewvallis.cfs.ast.analysis;
 
-import io.github.llewvallis.cfs.ast.AssignmentExprAst;
 import io.github.llewvallis.cfs.ast.FunctionAst;
 import io.github.llewvallis.cfs.ast.VarExprAst;
 import io.github.llewvallis.cfs.reporting.ErrorReporter;
@@ -18,16 +17,6 @@ public class ResolveNames extends AnalysisPass {
   public ResolveNames(ErrorReporter reporter, CollectNames collected) {
     super(reporter);
     this.collected = collected;
-  }
-
-  @Override
-  public void visitAssignmentExpr(AssignmentExprAst ast) {
-    var function = ast.findAncestor(FunctionAst.class);
-    var decl = collected.getVariable(function.getName(), ast.getVariable());
-    if (decl == null) report(new UndeclaredNameError(ast.getVariable()));
-    ast.setDecl(decl);
-
-    super.visitAssignmentExpr(ast);
   }
 
   @Override

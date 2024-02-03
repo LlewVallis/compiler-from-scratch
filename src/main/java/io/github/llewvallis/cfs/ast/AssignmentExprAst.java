@@ -9,18 +9,16 @@ import lombok.*;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
-public final class AssignmentExprAst extends ExprAst {
+public final class AssignmentExprAst extends RValueExprAst {
 
-  @Getter private final IdentAst variable;
+  @Getter private final LValueExprAst lhs;
 
-  @Getter private final ExprAst value;
+  @Getter private final RValueExprAst rhs;
 
-  @Getter @Setter private VarDeclAst decl = null;
-
-  public AssignmentExprAst(Span span, IdentAst variable, ExprAst value) {
+  public AssignmentExprAst(Span span, LValueExprAst lhs, ExprAst rhs) {
     super(span);
-    this.variable = variable;
-    this.value = value;
+    this.lhs = lhs;
+    this.rhs = RValueExprAst.ensure(rhs);
   }
 
   @Override
@@ -30,16 +28,14 @@ public final class AssignmentExprAst extends ExprAst {
 
   @Override
   public List<? extends Ast> getChildren() {
-    return List.of(variable, value);
+    return List.of(lhs, rhs);
   }
 
   @Override
   public GraphvizNode graphviz(GraphvizBuilder builder) {
     var node = builder.newNode("Assignment");
-
-    node.addEdge(variable.graphviz(builder), "Variable");
-    node.addEdge(value.graphviz(builder), "Value");
-
+    node.addEdge(lhs.graphviz(builder), "LHS");
+    node.addEdge(rhs.graphviz(builder), "RHS");
     return node;
   }
 }

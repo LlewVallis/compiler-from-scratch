@@ -34,7 +34,11 @@ class ResolveNamesTest {
         "int main(int a) { a; }",
         "int main() { int a; a; }",
         "int main() { a; int a; }",
-        "int main() { int a; int b; a; }"
+        "int main() { int a; int b; a; }",
+        "int main(int a) { a = 42; }",
+        "int main() { int a; a = 42; }",
+        "int main() { a = 42; int a; }",
+        "int main() { int a; int b; a = 42; }"
       })
   void resolvesVariableToDecl(String source) throws CompileErrorsException {
     var setup = Setup.setup(source);
@@ -42,24 +46,6 @@ class ResolveNamesTest {
 
     var decl = setup.ast.findDescendant(VarDeclAst.class);
     var expr = setup.ast.findDescendant(VarExprAst.class);
-
-    assertEquals(decl, expr.getDecl());
-  }
-
-  @ParameterizedTest
-  @ValueSource(
-      strings = {
-        "int main(int a) { a = 42; }",
-        "int main() { int a; a = 42; }",
-        "int main() { a = 42; int a; }",
-        "int main() { int a; int b; a = 42; }"
-      })
-  void resolvesAssignmentToDecl(String source) throws CompileErrorsException {
-    var setup = Setup.setup(source);
-    setup.reporter.assertNoErrors();
-
-    var decl = setup.ast.findDescendant(VarDeclAst.class);
-    var expr = setup.ast.findDescendant(AssignmentExprAst.class);
 
     assertEquals(decl, expr.getDecl());
   }

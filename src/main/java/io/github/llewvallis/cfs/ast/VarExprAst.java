@@ -12,7 +12,7 @@ import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
-public final class VarExprAst extends ExprAst {
+public final class VarExprAst extends LValueExprAst {
 
   @Getter private final IdentAst name;
 

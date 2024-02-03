@@ -4,7 +4,7 @@ import io.github.llewvallis.cfs.ast.ProgramAst;
 import io.github.llewvallis.cfs.ast.analysis.Analyzer;
 import io.github.llewvallis.cfs.interpret.InterpretException;
 import io.github.llewvallis.cfs.interpret.Interpreter;
-import io.github.llewvallis.cfs.interpret.Value;
+import io.github.llewvallis.cfs.interpret.RValue;
 import io.github.llewvallis.cfs.parser.Parser;
 import io.github.llewvallis.cfs.reporting.CompileErrorsException;
 import io.github.llewvallis.cfs.reporting.ErrorReporter;
@@ -40,7 +40,7 @@ public class CompilerDriver {
     return ast;
   }
 
-  public Value interpret(String function, List<Value> params)
+  public RValue interpret(String function, List<RValue> params)
       throws CompileErrorsException, InterpretException {
     analyze();
     return new Interpreter(ast).run(function, params);

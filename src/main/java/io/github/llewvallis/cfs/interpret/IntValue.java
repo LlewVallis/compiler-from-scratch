@@ -1,11 +1,12 @@
 package io.github.llewvallis.cfs.interpret;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 @EqualsAndHashCode(callSuper = false)
-public final class IntValue extends Value {
+public final class IntValue extends RValue {
 
-  private final int value;
+  @Getter private final int value;
 
   public IntValue(int value) {
     this.value = value;

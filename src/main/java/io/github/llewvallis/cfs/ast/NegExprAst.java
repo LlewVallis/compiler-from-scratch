@@ -11,18 +11,18 @@ import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
-public final class ExprStmtAst extends StmtAst {
+public final class NegExprAst extends RValueExprAst {
 
   @Getter private final RValueExprAst expr;
 
-  public ExprStmtAst(Span span, ExprAst expr) {
+  public NegExprAst(Span span, ExprAst expr) {
     super(span);
     this.expr = RValueExprAst.ensure(expr);
   }
 
   @Override
   public void accept(AstVisitor visitor) {
-    visitor.visitExprStmt(this);
+    visitor.visitNegExpr(this);
   }
 
   @Override
@@ -32,6 +32,8 @@ public final class ExprStmtAst extends StmtAst {
 
   @Override
   public GraphvizNode graphviz(GraphvizBuilder builder) {
-    return expr.graphviz(builder);
+    var node = builder.newNode("Negate");
+    node.addEdge(expr.graphviz(builder));
+    return node;
   }
 }

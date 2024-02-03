@@ -13,11 +13,11 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = false)
 public final class ReturnStmtAst extends StmtAst {
 
-  @Getter private final ExprAst value;
+  @Getter private final RValueExprAst value;
 
   public ReturnStmtAst(Span span, ExprAst value) {
     super(span);
-    this.value = value;
+    this.value = RValueExprAst.ensure(value);
   }
 
   @Override

@@ -11,27 +11,29 @@ import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
-public final class ExprStmtAst extends StmtAst {
+public final class IntoRValueExprAst extends RValueExprAst {
 
-  @Getter private final RValueExprAst expr;
+  @Getter private final LValueExprAst lValue;
 
-  public ExprStmtAst(Span span, ExprAst expr) {
+  public IntoRValueExprAst(Span span, LValueExprAst lValue) {
     super(span);
-    this.expr = RValueExprAst.ensure(expr);
+    this.lValue = lValue;
   }
 
   @Override
   public void accept(AstVisitor visitor) {
-    visitor.visitExprStmt(this);
+    visitor.visitIntoRValueExpr(this);
   }
 
   @Override
   public List<? extends Ast> getChildren() {
-    return List.of(expr);
+    return List.of(lValue);
   }
 
   @Override
   public GraphvizNode graphviz(GraphvizBuilder builder) {
-    return expr.graphviz(builder);
+    var node = builder.newNode("Into RValue");
+    node.addEdge(lValue.graphviz(builder));
+    return node;
   }
 }

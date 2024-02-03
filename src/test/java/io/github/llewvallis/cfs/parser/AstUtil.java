@@ -6,6 +6,10 @@ import java.util.List;
 
 public class AstUtil {
 
+  public static ProgramAst exprProgram(ExprAst expr) {
+    return program(function("main", params(), intTy(), block(exprStmt(expr))));
+  }
+
   public static ProgramAst program(FunctionAst... functions) {
     return new ProgramAst(null, Arrays.asList(functions));
   }
@@ -55,7 +59,39 @@ public class AstUtil {
     return new IntLiteralExprAst(null, value);
   }
 
-  public static AssignmentExprAst assignment(String variable, ExprAst value) {
-    return new AssignmentExprAst(null, new IdentAst(null, variable), value);
+  public static AssignmentExprAst assignment(LValueExprAst lhs, ExprAst rhs) {
+    return new AssignmentExprAst(null, lhs, rhs);
+  }
+
+  public static AssignmentExprAst assignment(String lhs, ExprAst rhs) {
+    return assignment(varExpr(lhs), rhs);
+  }
+
+  public static AddExprAst add(ExprAst lhs, ExprAst rhs) {
+    return new AddExprAst(null, lhs, rhs);
+  }
+
+  public static SubExprAst sub(ExprAst lhs, ExprAst rhs) {
+    return new SubExprAst(null, lhs, rhs);
+  }
+
+  public static MulExprAst mul(ExprAst lhs, ExprAst rhs) {
+    return new MulExprAst(null, lhs, rhs);
+  }
+
+  public static DivExprAst div(ExprAst lhs, ExprAst rhs) {
+    return new DivExprAst(null, lhs, rhs);
+  }
+
+  public static NegExprAst neg(ExprAst expr) {
+    return new NegExprAst(null, expr);
+  }
+
+  public static TernaryExprAst ternary(ExprAst condition, ExprAst ifTrue, ExprAst ifFalse) {
+    return new TernaryExprAst(null, condition, ifTrue, ifFalse);
+  }
+
+  public static CallExprAst call(String name, ExprAst... exprs) {
+    return new CallExprAst(null, new IdentAst(null, name), Arrays.asList(exprs));
   }
 }

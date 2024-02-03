@@ -19,14 +19,22 @@ public class Lexer {
   private static final Set<Character> WHITESPACE = Set.of(' ', '\t', '\n', '\r');
 
   private static final Map<String, TokenFactory> SYMBOLS =
-      Map.of(
-          "(", OpenParenToken::new,
-          ")", CloseParenToken::new,
-          "{", OpenBraceToken::new,
-          "}", CloseBraceToken::new,
-          ";", SemicolonToken::new,
-          ",", CommaToken::new,
-          "=", EqualsToken::new);
+      Map.ofEntries(
+          Map.entry("(", OpenParenToken::new),
+          Map.entry(")", CloseParenToken::new),
+          Map.entry("{", OpenBraceToken::new),
+          Map.entry("}", CloseBraceToken::new),
+          Map.entry("?", QuestionToken::new),
+          Map.entry(":", ColonToken::new),
+          Map.entry(";", SemicolonToken::new),
+          Map.entry(",", CommaToken::new),
+          Map.entry("=", EqualsToken::new),
+          Map.entry("+", PlusToken::new),
+          Map.entry("-", MinusToken::new),
+          Map.entry("*", StarToken::new),
+          Map.entry("/", SlashToken::new),
+          Map.entry("&&", AndAndToken::new),
+          Map.entry("||", OrOrToken::new));
 
   /** If an identifier matches one of these, we replace it using this table. */
   private static final Map<String, TokenFactory> KEYWORDS =

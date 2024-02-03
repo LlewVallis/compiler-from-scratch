@@ -3,6 +3,7 @@ package io.github.llewvallis.cfs.parser;
 import io.github.llewvallis.cfs.ast.*;
 import io.github.llewvallis.cfs.reporting.CompileErrorsException;
 import io.github.llewvallis.cfs.reporting.ErrorReporter;
+import io.github.llewvallis.cfs.reporting.NotAnLValueError;
 import io.github.llewvallis.cfs.reporting.ParseError;
 import io.github.llewvallis.cfs.token.*;
 import io.github.llewvallis.cfs.util.Once;
@@ -36,6 +37,46 @@ public class Parser {
      */
     T parse(Parser parser) throws ParseException;
   }
+
+  /**
+   * We will use this for the Pratt parser. The binding power of an operator means how tightly it
+   * binds in an expression. So addition has a lower binding power than multiplication. Each
+   * operator has a left or right power. A smaller left power means left associative and a smaller
+   * right power means right associative.
+   */
+  private record BindingPower(int power, boolean rightAssociative) {
+
+    public static BindingPower prefix(Token token) {
+      return switch (token) {
+        case MinusToken ignored -> new BindingPower(7, true);
+        default -> null;
+      };
+    }
+
+    public static BindingPower continuing(Token token) {
+      return switch (token) {
+        case EqualsToken ignored -> new BindingPower(1, true);
+        case QuestionToken ignored -> new BindingPower(2, true);
+        case AndAndToken ignored -> new BindingPower(3, false);
+        case OrOrToken ignored -> new BindingPower(4, false);
+        case PlusToken ignored -> new BindingPower(5, false);
+        case MinusToken ignored -> new BindingPower(5, false);
+        case StarToken ignored -> new BindingPower(6, false);
+        case SlashToken ignored -> new BindingPower(6, false);
+        default -> null;
+      };
+    }
+
+    public int left() {
+      return power * 2 + (rightAssociative ? 1 : 0);
+    }
+
+    public int right() {
+      return power * 2 + (rightAssociative ? 0 : 1);
+    }
+  }
+
+  private record SpeculateResult<T>(T value, boolean success) {}
 
   public static ProgramAst parse(ErrorReporter reporter, String syntax) {
     var tokens = new TokenStream(reporter, new Lexer(syntax));
@@ -80,17 +121,28 @@ public class Parser {
    * {@code null} and resets all state mutated by the function. This is useful when there is a
    * choice between different rules, we can try one rule and then another if the first fails.
    */
-  private <T> T speculate(ParseFunction<T> f) {
+  private <T> SpeculateResult<T> speculate(ParseFunction<T> f) {
     var oldTokens = new TokenStream(tokens);
     var oldErrorGuard = new Once(errorGuard);
 
     try {
-      return f.parse(this);
+      var result = f.parse(this);
+      return new SpeculateResult<>(result, true);
     } catch (ParseException e) {
       tokens = oldTokens;
       errorGuard = oldErrorGuard;
-      return null;
+      return new SpeculateResult<>(null, false);
     }
+  }
+
+  @SafeVarargs
+  private <T> T alternative(String expected, ParseFunction<T>... alts) throws ParseException {
+    for (var alt : alts) {
+      var result = speculate(alt);
+      if (result.success) return result.value;
+    }
+
+    throw new ParseException(expected, tokens.peek());
   }
 
   /**
@@ -182,6 +234,16 @@ public class Parser {
     return results;
   }
 
+  private LValueExprAst requireLValue(ExprAst expr) {
+    if (expr instanceof LValueExprAst lValue) {
+      return lValue;
+    } else {
+      reporter.report(new NotAnLValueError(expr.getSpan()));
+      hasErrors = true;
+      return null;
+    }
+  }
+
   public ProgramAst parseProgram() {
     var span = new SpanTracker(tokens);
     var functions = repeat(EofToken.class, Parser::parseFunction);
@@ -236,16 +298,8 @@ public class Parser {
   }
 
   private StmtAst parseStmt() throws ParseException {
-    VarDeclStmtAst varDecl = speculate(Parser::parseVarDeclStmt);
-    if (varDecl != null) return varDecl;
-
-    ReturnStmtAst returnStmt = speculate(Parser::parseReturnStmt);
-    if (returnStmt != null) return returnStmt;
-
-    ExprStmtAst expr = speculate(Parser::parseExprStmt);
-    if (expr != null) return expr;
-
-    throw new ParseException("statement", tokens.peek());
+    return alternative(
+        "statement", Parser::parseVarDeclStmt, Parser::parseReturnStmt, Parser::parseExprStmt);
   }
 
   private VarDeclStmtAst parseVarDeclStmt() throws ParseException {
@@ -277,32 +331,94 @@ public class Parser {
   }
 
   private ExprAst parseExpr() throws ParseException {
-    AssignmentExprAst assignment = speculate(Parser::parseAssignmentExpr);
-    if (assignment != null) return assignment;
+    return parseExpr(0);
+  }
 
-    VarExprAst variable = speculate(Parser::parseVariableExpr);
-    if (variable != null) return variable;
+  /** Pratt parser for expressions. */
+  private ExprAst parseExpr(int minBindingPower) throws ParseException {
+    var span = new SpanTracker(tokens);
+    var expr = parsePrefixedExpr();
 
-    IntLiteralExprAst intLiteral = speculate(Parser::parseIntLiteralExpr);
-    if (intLiteral != null) return intLiteral;
+    while (true) {
+      var power = BindingPower.continuing(tokens.peek());
 
-    throw new ParseException("expression", tokens.peek());
+      if (power == null || power.left() < minBindingPower) {
+        return expr;
+      }
+
+      expr = continueExpr(span, expr, power.right());
+    }
+  }
+
+  private ExprAst parsePrefixedExpr() throws ParseException {
+    var span = new SpanTracker(tokens);
+
+    var power = BindingPower.prefix(tokens.peek());
+    if (power == null) return parseAtomicExpr();
+
+    var op = tokens.next();
+    var rhs = recover(parser -> parser.parseExpr(power.right()));
+
+    return switch (op) {
+      case MinusToken ignored -> new NegExprAst(span.finish(), rhs);
+      default -> throw new AssertionError();
+    };
+  }
+
+  private ExprAst continueExpr(SpanTracker span, ExprAst lhs, int rhsPower) {
+    var op = tokens.next();
+
+    if (op instanceof QuestionToken) {
+      var ifTrue = recover(parser -> parseExpr(0));
+      recover(ColonToken.class);
+      var ifFalse = recover(parser -> parseExpr(rhsPower));
+      return new TernaryExprAst(span.finish(), lhs, ifTrue, ifFalse);
+    }
+
+    var rhs = recover(parser -> parser.parseExpr(rhsPower));
+
+    return switch (op) {
+      case PlusToken ignored -> new AddExprAst(span.finish(), lhs, rhs);
+      case MinusToken ignored -> new SubExprAst(span.finish(), lhs, rhs);
+      case StarToken ignored -> new MulExprAst(span.finish(), lhs, rhs);
+      case SlashToken ignored -> new DivExprAst(span.finish(), lhs, rhs);
+      case AndAndToken ignored -> new LogicalAndExprAst(span.finish(), lhs, rhs);
+      case OrOrToken ignored -> new LogicalOrExprAst(span.finish(), lhs, rhs);
+      case EqualsToken ignored -> new AssignmentExprAst(span.finish(), requireLValue(lhs), rhs);
+      default -> throw new AssertionError();
+    };
+  }
+
+  private ExprAst parseAtomicExpr() throws ParseException {
+    return alternative(
+        "expression",
+        Parser::parseCallExpr,
+        Parser::parseVariableExpr,
+        Parser::parseIntLiteralExpr,
+        Parser::parseParenExpr);
+  }
+
+  private ExprAst parseParenExpr() throws ParseException {
+    expect(OpenParenToken.class);
+    var expr = recover(Parser::parseExpr);
+    recover(CloseParenToken.class);
+    return expr;
+  }
+
+  private CallExprAst parseCallExpr() throws ParseException {
+    var span = new SpanTracker(tokens);
+    var ident = parseIdent();
+    expect(OpenParenToken.class);
+    var args = repeat(CloseParenToken.class, CommaToken.class, Parser::parseExpr);
+    recover(CloseParenToken.class);
+
+    return new CallExprAst(span.finish(), ident, args);
   }
 
   private VarExprAst parseVariableExpr() throws ParseException {
     var span = new SpanTracker(tokens);
     var ident = parseIdent();
     return new VarExprAst(span.finish(), ident);
-  }
-
-  private AssignmentExprAst parseAssignmentExpr() throws ParseException {
-    var span = new SpanTracker(tokens);
-
-    var lhs = parseIdent();
-    expect(EqualsToken.class);
-    var rhs = recover(Parser::parseExpr);
-
-    return new AssignmentExprAst(span.finish(), lhs, rhs);
   }
 
   private IntLiteralExprAst parseIntLiteralExpr() throws ParseException {

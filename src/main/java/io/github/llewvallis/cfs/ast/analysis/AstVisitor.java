@@ -51,11 +51,51 @@ public interface AstVisitor {
     visitChildren(ast);
   }
 
+  default void visitIntoRValueExpr(IntoRValueExprAst ast) {
+    visitChildren(ast);
+  }
+
   default void visitAssignmentExpr(AssignmentExprAst ast) {
     visitChildren(ast);
   }
 
   default void visitIntLiteralExpr(IntLiteralExprAst ast) {
+    visitChildren(ast);
+  }
+
+  default void visitCallExpr(CallExprAst ast) {
+    visitChildren(ast);
+  }
+
+  default void visitAddExpr(AddExprAst ast) {
+    visitChildren(ast);
+  }
+
+  default void visitSubExpr(SubExprAst ast) {
+    visitChildren(ast);
+  }
+
+  default void visitMulExpr(MulExprAst ast) {
+    visitChildren(ast);
+  }
+
+  default void visitDivExpr(DivExprAst ast) {
+    visitChildren(ast);
+  }
+
+  default void visitNegExpr(NegExprAst ast) {
+    visitChildren(ast);
+  }
+
+  default void visitLogicalAndExpr(LogicalAndExprAst ast) {
+    visitChildren(ast);
+  }
+
+  default void visitLogicalOrExpr(LogicalOrExprAst ast) {
+    visitChildren(ast);
+  }
+
+  default void visitTernaryExpr(TernaryExprAst ast) {
     visitChildren(ast);
   }
 

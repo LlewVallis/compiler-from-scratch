@@ -7,23 +7,23 @@ public class Interpreter {
 
   private final ProgramAst ast;
 
-  private final Deque<Map<IdentAst, Value>> stack = new ArrayDeque<>();
+  private final Deque<Map<IdentAst, LValue>> stack = new ArrayDeque<>();
 
   public Interpreter(ProgramAst ast) {
     this.ast = ast;
   }
 
-  public Value run(String name, List<Value> params) throws InterpretException {
+  public RValue run(String name, List<RValue> args) throws InterpretException {
     var function = ast.getFunction(name);
     if (function == null) {
       throw new InterpretException("no function called " + name);
     }
 
-    return runFunction(function, params);
+    return runFunction(function, args);
   }
 
-  private Value runFunction(FunctionAst ast, List<Value> args) throws InterpretException {
-    var variables = new HashMap<IdentAst, Value>();
+  private RValue runFunction(FunctionAst ast, List<RValue> args) throws InterpretException {
+    var variables = new HashMap<IdentAst, LValue>();
     stack.push(variables);
 
     if (ast.getParams().size() != args.size()) {
@@ -32,45 +32,153 @@ public class Interpreter {
 
     for (var i = 0; i < args.size(); i++) {
       var param = ast.getParams().get(i);
-      var value = args.get(i);
+      var value = new LValue(args.get(i));
       variables.put(param.getName(), value);
     }
 
     try {
-      return runBlock(ast.getBody());
+      return runBody(ast.getBody());
     } finally {
       stack.pop();
     }
   }
 
-  private Value runBlock(BlockAst ast) throws InterpretException {
+  private RValue runBody(BlockAst ast) throws InterpretException {
     for (var stmt : ast.getStmts()) {
       switch (stmt) {
-        case VarDeclStmtAst ignored -> {}
+        case VarDeclStmtAst varDecl -> stack.peek().put(varDecl.getDecl().getName(), new LValue());
         case ReturnStmtAst returnStmt -> {
-          return evalExpr(returnStmt.getValue());
+          return evalRValueExpr(returnStmt.getValue());
         }
-        case ExprStmtAst exprStmt -> evalExpr(exprStmt.getExpr());
+        case ExprStmtAst exprStmt -> evalRValueExpr(exprStmt.getExpr());
       }
     }
 
     throw new InterpretException("function did not return");
   }
 
-  private Value evalExpr(ExprAst ast) throws InterpretException {
+  private LValue evalLValueExpr(LValueExprAst ast) throws InterpretException {
     return switch (ast) {
-      case VarExprAst variable -> {
-        var value = stack.peek().get(variable.getName());
-        if (value == null)
-          throw new InterpretException("uninitialized variable " + variable.getName());
-        yield value;
-      }
-      case IntLiteralExprAst intLiteral -> new IntValue(intLiteral.getValue());
-      case AssignmentExprAst assignment -> {
-        var value = evalExpr(assignment.getValue());
-        stack.peek().put(assignment.getVariable(), value);
-        yield value;
-      }
+      case VarExprAst var -> evalVarExpr(var);
     };
+  }
+
+  private LValue evalVarExpr(VarExprAst variable) throws InterpretException {
+    var value = stack.peek().get(variable.getName());
+
+    if (value == null) {
+      throw new InterpretException("undefined variable " + variable.getName());
+    }
+
+    return value;
+  }
+
+  private RValue evalRValueExpr(RValueExprAst ast) throws InterpretException {
+    return switch (ast) {
+      case IntoRValueExprAst intoRValue -> evalIntoRValueExpr(intoRValue);
+      case IntLiteralExprAst intLiteral -> evalIntLiteral(intLiteral);
+      case AssignmentExprAst assignment -> evalAssignmentExpr(assignment);
+      case CallExprAst call -> evalCallExpr(call);
+      case AddExprAst add -> evalAddExpr(add);
+      case SubExprAst sub -> evalSubExpr(sub);
+      case MulExprAst mul -> evalMulExpr(mul);
+      case DivExprAst div -> evalDivExpr(div);
+      case NegExprAst neg -> evalNegExpr(neg);
+      case LogicalAndExprAst logicalAnd -> evalLogicalAndExpr(logicalAnd);
+      case LogicalOrExprAst logicalOr -> evalLogicalOrExpr(logicalOr);
+      case TernaryExprAst ternary -> evalTernaryExpr(ternary);
+    };
+  }
+
+  private RValue evalIntoRValueExpr(IntoRValueExprAst intoRValue) throws InterpretException {
+    var lValue = evalLValueExpr(intoRValue.getLValue());
+    return lValue.get();
+  }
+
+  private IntValue evalIntLiteral(IntLiteralExprAst intLiteral) {
+    return new IntValue(intLiteral.getValue());
+  }
+
+  private RValue evalAssignmentExpr(AssignmentExprAst assignment) throws InterpretException {
+    var lhs = evalLValueExpr(assignment.getLhs());
+    var rhs = evalRValueExpr(assignment.getRhs());
+
+    lhs.set(rhs);
+
+    return rhs;
+  }
+
+  private RValue evalCallExpr(CallExprAst call) throws InterpretException {
+    var args = new ArrayList<RValue>();
+    for (var arg : call.getArgs()) args.add(evalRValueExpr(arg));
+    return run(call.getFunction().getContent(), args);
+  }
+
+  private RValue evalAddExpr(AddExprAst add) throws InterpretException {
+    var lhs = evalRValueExpr(add.getLhs());
+    var rhs = evalRValueExpr(add.getRhs());
+    var value = lhs.castToInt().getValue() + rhs.castToInt().getValue();
+    return new IntValue(value);
+  }
+
+  private RValue evalSubExpr(SubExprAst sub) throws InterpretException {
+    var lhs = evalRValueExpr(sub.getLhs());
+    var rhs = evalRValueExpr(sub.getRhs());
+    var value = lhs.castToInt().getValue() - rhs.castToInt().getValue();
+    return new IntValue(value);
+  }
+
+  private RValue evalMulExpr(MulExprAst mul) throws InterpretException {
+    var lhs = evalRValueExpr(mul.getLhs());
+    var rhs = evalRValueExpr(mul.getRhs());
+    var value = lhs.castToInt().getValue() * rhs.castToInt().getValue();
+    return new IntValue(value);
+  }
+
+  private RValue evalDivExpr(DivExprAst div) throws InterpretException {
+    var lhs = evalRValueExpr(div.getLhs());
+    var rhs = evalRValueExpr(div.getRhs());
+
+    try {
+      var value = lhs.castToInt().getValue() + rhs.castToInt().getValue();
+      return new IntValue(value);
+    } catch (ArithmeticException e) {
+      throw new InterpretException("division by zero");
+    }
+  }
+
+  private RValue evalNegExpr(NegExprAst negation) throws InterpretException {
+    var value = evalRValueExpr(negation.getExpr());
+    return new IntValue(-value.castToInt().getValue());
+  }
+
+  private RValue evalLogicalAndExpr(LogicalAndExprAst logicalAnd) throws InterpretException {
+    var lhs = evalRValueExpr(logicalAnd.getLhs());
+
+    if (lhs.castToInt().getValue() == 0) {
+      return lhs;
+    } else {
+      return evalRValueExpr(logicalAnd.getRhs());
+    }
+  }
+
+  private RValue evalLogicalOrExpr(LogicalOrExprAst logicalOr) throws InterpretException {
+    var lhs = evalRValueExpr(logicalOr.getLhs());
+
+    if (lhs.castToInt().getValue() != 0) {
+      return lhs;
+    } else {
+      return evalRValueExpr(logicalOr.getRhs());
+    }
+  }
+
+  private RValue evalTernaryExpr(TernaryExprAst ternary) throws InterpretException {
+    var condition = evalRValueExpr(ternary.getCondition());
+
+    if (condition.castToInt().getValue() != 0) {
+      return evalRValueExpr(ternary.getTrueCase());
+    } else {
+      return evalRValueExpr(ternary.getFalseCase());
+    }
   }
 }
