@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @ToString
@@ -18,6 +19,8 @@ public final class CallExprAst extends RValueExprAst {
   @Getter private final IdentAst function;
 
   @Getter private final List<RValueExprAst> args;
+
+  @Getter @Setter @EqualsAndHashCode.Exclude private FunctionAst functionDecl;
 
   public CallExprAst(Span span, IdentAst function, List<ExprAst> args) {
     super(span);

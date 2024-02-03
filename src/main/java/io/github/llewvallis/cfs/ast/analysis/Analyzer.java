@@ -10,13 +10,17 @@ public class Analyzer {
 
   private final ResolveNames resolveNames;
 
+  private final CheckCallArity checkCallArity;
+
   public Analyzer(ErrorReporter reporter) {
     collectNames = new CollectNames(reporter);
     resolveNames = new ResolveNames(reporter, collectNames);
+    checkCallArity = new CheckCallArity(reporter);
   }
 
   public void analyze(Ast ast) {
     ast.accept(collectNames);
     ast.accept(resolveNames);
+    ast.accept(checkCallArity);
   }
 }

@@ -51,8 +51,8 @@ class ResolveNamesTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"int main() { a; }", "int main() { a = 42; }"})
-  void reportsUndeclaredVariables(String source) throws CompileErrorsException {
+  @ValueSource(strings = {"int main() { a; }", "int main() { a = 42; }", "int main() { a(); }"})
+  void reportsUndeclaredNames(String source) throws CompileErrorsException {
     var setup = Setup.setup(source);
     var error = new UndeclaredNameError(new IdentAst(null, "a"));
     assertEquals(List.of(error), setup.reporter.getErrors());

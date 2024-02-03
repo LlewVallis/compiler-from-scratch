@@ -16,7 +16,7 @@ public final class VarExprAst extends LValueExprAst {
 
   @Getter private final IdentAst name;
 
-  @Getter @Setter private VarDeclAst decl = null;
+  @Getter @Setter @EqualsAndHashCode.Exclude private VarDeclAst decl = null;
 
   public VarExprAst(Span span, IdentAst name) {
     super(span);

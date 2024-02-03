@@ -1,5 +1,6 @@
 package io.github.llewvallis.cfs.ast.analysis;
 
+import io.github.llewvallis.cfs.ast.CallExprAst;
 import io.github.llewvallis.cfs.ast.FunctionAst;
 import io.github.llewvallis.cfs.ast.VarExprAst;
 import io.github.llewvallis.cfs.reporting.ErrorReporter;
@@ -27,5 +28,15 @@ public class ResolveNames extends AnalysisPass {
     ast.setDecl(decl);
 
     super.visitVariableExpr(ast);
+  }
+
+  @Override
+  public void visitCallExpr(CallExprAst ast) {
+    var name = ast.getFunction();
+    var function = collected.getFunction(name);
+    if (function == null) report(new UndeclaredNameError(name));
+    ast.setFunctionDecl(function);
+
+    super.visitCallExpr(ast);
   }
 }
